@@ -17,12 +17,14 @@ void parseMe(char input[], char *output[], const char *delim)
 		temp = strtok(NULL, delim);
 	}
 	*next = NULL;
+	return;
 }
 
 void executeMe(char *input[])
 {
 	execvp(input[0], input);
 	std::cout << "[-] Error running command" << std::flush;
+	return;
 }
 
 int main(int argc, char* argv[])
@@ -31,51 +33,34 @@ int main(int argc, char* argv[])
 	char userInput[1024];
 	while(!quit)
 	{
-		std::cout << std::endl << "Lab3 >> ";
+		std::cout << std::endl << "Lab3 >> " << std::flush;
 		std::cin.getline(userInput, sizeof(userInput));
 		if(std::string(userInput).find("quit") != std::string::npos || std::string(userInput).find("exit") != std::string::npos) quit = true;
 		else if(std::string(userInput).find("|") != std::string::npos) 
 		{
-			char *splitPipe[256];
+			char *splitPipe[10];
 			int pipefd[2], i=0;
 			parseMe(userInput, splitPipe, "|");
 			pipe(pipefd);
-			// while(splitPipe[i] != NULL && i<1)
-			// {
-				// printf("main: %s\n", splitPipe[1]);
-				if(fork()==0)
-				{
-					char *args[256];
-					parseMe(splitPipe[0], args, " ");
-					// std::cout << std::endl << "First set: " << std::flush;
-					// int j=0;
-					// while(args[j]!=NULL)
-					// 	printf("%s, ", args[j++]);
-					dup2(pipefd[1], STDOUT_FILENO);
-        			close(pipefd[1]);
-					executeMe(args);
-					exit(0);
-					//*args=NULL;
-				} 
-				else 
-				{
-					wait(0);
-					char *args[256];
-					parseMe(splitPipe[1], args, " ");
-					// std::cout << std::endl << "Second set: " << std::flush;
-					// int j=0;
-					// while(args[j]!=NULL)
-					// 	printf("%s, ", args[j++]);
-					dup2(pipefd[0], STDIN_FILENO);
-					close(pipefd[0]);
-					executeMe(args);
-					close(pipefd[1]);
-					//*args=NULL;
-				}
-				// while(args[j] != NULL)
-				// 	printf("%s\n", args[j++]);
-				// i++;
-			//}
+			if(fork()==0)
+			{
+				char *args[10];
+				parseMe(splitPipe[0], args, " ");
+				dup2(pipefd[1], STDOUT_FILENO);
+    			close(pipefd[1]);
+				executeMe(args);
+				exit(0);
+			} 
+			else 
+			{
+				char *args[10];
+				parseMe(splitPipe[1], args, " ");
+				dup2(pipefd[0], STDIN_FILENO);
+				close(pipefd[0]);
+				executeMe(args);
+			}
+			close(pipefd[0]);
+			close(pipefd[1]);
 		}
 		else if(std::string(userInput).find(">>") != std::string::npos) 
 		{
