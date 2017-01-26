@@ -22,6 +22,7 @@ void parseMe(char input[], char *output[], const char *delim)
 
 void executeMe(char *input[])
 {
+	std::cout << std::flush;
 	execvp(input[0], input);
 	std::cout << "[-] Error running command" << std::flush;
 	return;
@@ -33,7 +34,7 @@ int main(int argc, char* argv[])
 	char userInput[1024];
 	while(!quit)
 	{
-		std::cout << std::endl << "Lab3 >> " << std::flush;
+		std::cout << "Lab3 >> " << std::flush;
 		std::cin.getline(userInput, sizeof(userInput));
 		if(std::string(userInput).find("quit") != std::string::npos || std::string(userInput).find("exit") != std::string::npos) quit = true;
 		else if(std::string(userInput).find("|") != std::string::npos) 
@@ -47,20 +48,22 @@ int main(int argc, char* argv[])
 				char *args[10];
 				parseMe(splitPipe[0], args, " ");
 				dup2(pipefd[1], STDOUT_FILENO);
-    			close(pipefd[1]);
+				close(pipefd[1]);
 				executeMe(args);
 				exit(0);
 			} 
 			else 
 			{
-				char *args[10];
-				parseMe(splitPipe[1], args, " ");
-				dup2(pipefd[0], STDIN_FILENO);
-				close(pipefd[0]);
-				executeMe(args);
+				if(fork()==0)
+				{
+					char *args[10];
+					parseMe(splitPipe[1], args, " ");
+					dup2(pipefd[0], STDIN_FILENO);
+					close(pipefd[0]);
+					executeMe(args);
+					exit(0);
+				} else wait(0);
 			}
-			close(pipefd[0]);
-			close(pipefd[1]);
 		}
 		else if(std::string(userInput).find(">>") != std::string::npos) 
 		{
