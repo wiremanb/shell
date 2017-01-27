@@ -1,7 +1,8 @@
 /*
  * Author: Benjamin Wireman
  * Date: 26 Jan 2017
- * Description: Basic shell.. provides some functionality but not all.  
+ * Description: Basic shell.. provides some functionality but not all.
+ *              Need to do better error checking... almost nonexistent... 
  */
 
 #include <iostream>
